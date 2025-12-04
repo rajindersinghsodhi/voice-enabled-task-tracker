@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   DndContext,
   closestCenter,
@@ -10,136 +10,211 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  useDroppable,
 } from "@dnd-kit/core"
 import {
-  arrayMove,
   SortableContext,
   verticalListSortingStrategy,
+  arrayMove,
 } from "@dnd-kit/sortable"
 
 import Task, { TaskType } from "./Task"
-import TaskInput from "./TaskInput"
 import SortableTask from "./SortableTask"
+import TaskInput from "./TaskInput"
+import taskService from "@/services/taskService"
 
-type KanbanBoardProps = {
-  initialTodos?: TaskType[]
-  initialDone?: TaskType[]
+function DroppableColumn({
+  id,
+  children,
+}: {
+  id: "todo" | "done"
+  children: React.ReactNode
+}) {
+  const { setNodeRef } = useDroppable({ id })
+
+  return (
+    <div ref={setNodeRef} className="flex-1 flex h-full">
+      {children}
+    </div>
+  )
 }
 
-const KanbanBoard = ({ initialTodos = [], initialDone = [] }: KanbanBoardProps) => {
-  const [todos, setTodos] = useState<TaskType[]>(initialTodos)
-  const [done, setDone] = useState<TaskType[]>(initialDone)
+export default function KanbanBoard() {
+  const [todos, setTodos] = useState<TaskType[]>([])
+  const [done, setDone] = useState<TaskType[]>([])
   const [activeTask, setActiveTask] = useState<TaskType | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor))
 
+  useEffect(() => {
+    const loadTasks = async () => {
+      const data = await taskService.getTasks()
+      setTodos(data.tasksTodo)
+      setDone(data.tasksDone)
+    }
+
+    loadTasks()
+  }, [])
+
   const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event
-    const task = todos.find(t => t.title === active.id) || done.find(t => t.title === active.id)
+    const id = event.active.id
+
+    const task =
+      todos.find(t => t.taskId === id) ||
+      done.find(t => t.taskId === id)
+
     if (task) setActiveTask(task)
   }
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over) return setActiveTask(null)
-
-    const sourceList = todos.find(t => t.title === active.id) ? todos : done
-    const targetList = todos.find(t => t.title === over.id) ? todos : done
-
-    if (sourceList === targetList) {
-      const oldIndex = sourceList.findIndex(t => t.title === active.id)
-      const newIndex = sourceList.findIndex(t => t.title === over.id)
-      const newList = arrayMove(sourceList, oldIndex, newIndex)
-      sourceList === todos ? setTodos(newList) : setDone(newList)
-    } else {
-      const taskIndex = sourceList.findIndex(t => t.title === active.id)
-      const [movedTask] = sourceList.splice(taskIndex, 1)
-      movedTask.status = targetList === todos ? "todo" : "done"
-      targetList.push(movedTask)
-      setTodos([...todos])
-      setDone([...done])
-    }
-
+  const handleDragEnd = async (event: DragEndEvent) => {
+  const { active, over } = event
+  if (!over) {
     setActiveTask(null)
+    return
   }
 
-  const addTask = (task: TaskType) => setTodos([...todos, task])
+  const activeId = active.id
+  const overId = over.id
 
+  const isFromTodo = todos.some(t => t.taskId === activeId)
+  const isGoingToTodo =
+    todos.some(t => t.taskId === overId) ||
+    overId === "todo"
+
+  // Reorder inside same column
+  if (isFromTodo === isGoingToTodo) {
+    const list = isFromTodo ? todos : done
+    const setList = isFromTodo ? setTodos : setDone
+
+    const oldIndex = list.findIndex(t => t.taskId === activeId)
+    const newIndex = list.findIndex(t => t.taskId === overId)
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      setList(arrayMove(list, oldIndex, newIndex))
+    }
+  }
+  // Move between columns
+  else {
+    const sourceList = isFromTodo ? todos : done
+    const targetList = isGoingToTodo ? todos : done
+
+    const remove = isFromTodo ? setTodos : setDone
+    const add = isGoingToTodo ? setTodos : setDone
+
+    const movedTask = sourceList.find(t => t.taskId === activeId)
+    if (!movedTask) return
+
+    // Optimistically update UI
+    remove(sourceList.filter(t => t.taskId !== activeId))
+    add([
+      ...targetList,
+      {
+        ...movedTask,
+        status: isGoingToTodo ? "todo" : "done",
+      },
+    ])
+
+    // Persist to backend
+    try {
+      await taskService.updateTask({
+        taskId: movedTask.taskId,
+        updates: { status: isGoingToTodo ? "todo" : "done" },
+      })
+    } catch (err) {
+      console.error("Failed to update task status", err)
+      // Optionally: revert UI if update fails
+    }
+  }
+
+  setActiveTask(null)
+}
+
+
+  const addTask = async (taskToAdd: TaskType) => {
+    try {
+      // SAVE TO DB FIRST
+      const { task } = await taskService.createTask(taskToAdd)
+
+      // THEN UPDATE UI
+      console.log(task)
+      setTodos(prev => [...prev, task])
+    } catch (err) {
+      console.error("Failed to create task", err)
+    }
+  }
   return (
     <div className="board flex flex-col h-screen">
 
-  <DndContext
-    sensors={sensors}
-    collisionDetection={closestCenter}
-    onDragEnd={handleDragEnd}
-    onDragStart={handleDragStart}
-  >
-    
-    {/* Board Area */}
-    <div className="flex gap-6 px-4 py-4 flex-1 overflow-x-auto">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
 
-      {/* TODO COLUMN */}
-      <div className="flex-1 p-4 rounded-lg flex flex-col h-full border shadow-md">
+        {/* ✅ BOARD AREA */}
+        <div className="flex gap-6 px-4 py-4 flex-1 overflow-x-auto">
 
-        <h2 className="font-bold mb-4 text-lg">
-          Todo
-        </h2>
+          {/* TODO COLUMN */}
+          <DroppableColumn id="todo">
+            <div className="flex-1 p-4 rounded-lg flex flex-col h-full border shadow-md">
+              <h2 className="font-bold mb-4 text-lg">Todo</h2>
 
-        {/* Scroll zone */}
-        <div className="flex-1 overflow-y-auto">
-          <SortableContext
-            items={todos.map(t => t.title)}
-            strategy={verticalListSortingStrategy}
-          >
-            {todos.map(task => (
-              <SortableTask key={task.title} task={task} />
-            ))}
-          </SortableContext>
+              {/* ✅ SCROLL ZONE */}
+              <div className="flex-1 overflow-y-auto">
+                <SortableContext
+                  items={todos.map(t => t.taskId)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {todos.map(task => (
+                    <SortableTask
+                      key={task.taskId}
+                      task={task}
+                    />
+                  ))}
+                </SortableContext>
+              </div>
+            </div>
+          </DroppableColumn>
+
+          {/* DONE COLUMN */}
+          <DroppableColumn id="done">
+            <div className="flex-1 p-4 rounded-lg flex flex-col h-full border shadow-md">
+              <h2 className="font-bold mb-4 text-lg">Done</h2>
+
+              {/* ✅ SCROLL ZONE */}
+              <div className="flex-1 overflow-y-auto">
+                <SortableContext
+                  items={done.map(t => t.taskId)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {done.map(task => (
+                    <SortableTask
+                      key={task.taskId}
+                      task={task}
+                    />
+                  ))}
+                </SortableContext>
+              </div>
+            </div>
+          </DroppableColumn>
+
         </div>
 
-      </div>
+        {/* ✅ DRAG OVERLAY */}
+        <DragOverlay>
+          {activeTask && <Task {...activeTask} />}
+        </DragOverlay>
 
+      </DndContext>
 
-      {/* DONE COLUMN */}
-      <div className="flex-1 p-4 rounded-lg flex flex-col h-full border shadow-md">
-
-        <h2 className="font-bold mb-4 text-lg">
-          Done
-        </h2>
-
-        {/* Scroll zone */}
-        <div className="flex-1 overflow-y-auto">
-          <SortableContext
-            items={done.map(t => t.title)}
-            strategy={verticalListSortingStrategy}
-          >
-            {done.map(task => (
-              <SortableTask key={task.title} task={task} />
-            ))}
-          </SortableContext>
-        </div>
-
+      {/* ✅ FOOTER STAYS FIXED */}
+      <div className="task-input-container flex justify-center w-full py-4">
+        <TaskInput
+          addTask={addTask}
+        />
       </div>
 
     </div>
-
-
-    {/* Drag overlay */}
-    <DragOverlay>
-      {activeTask ? <Task {...activeTask} /> : null}
-    </DragOverlay>
-
-  </DndContext>
-
-
-  {/* Input stays OUTSIDE scroll area */}
-  <div className="task-input-container flex justify-center w-full py-4">
-    <TaskInput addTask={addTask} />
-  </div>
-
-</div>
-
   )
 }
-
-export default KanbanBoard

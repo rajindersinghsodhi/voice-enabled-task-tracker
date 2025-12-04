@@ -1,18 +1,19 @@
-"use client"
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, Edit2 } from "lucide-react"
 import { format } from "date-fns"
 
 export type TaskType = {
+  taskId: string,
   title: string
   priority: "low" | "medium" | "high"
   dueDate: string // YYYY-MM-DD
   status: "todo" | "done"
 }
 
-type TaskProps = TaskType
+type TaskProps = TaskType & {
+  onEdit?: (task: TaskType) => void
+}
 
 const priorityStyles = {
   low: "bg-green-100 text-green-700",
@@ -25,22 +26,23 @@ const statusStyles = {
   done: "bg-green-50 border border-green-200"
 }
 
-const Task = ({ title, priority, dueDate, status }: TaskProps) => {
+const Task = ({ taskId, title, priority, dueDate, status, onEdit }: TaskProps) => {
   const isDone = status === "done"
 
   return (
-    <Card className={`w-full max-w-md ${isDone ? "opacity-80" : ""} ${statusStyles[status]}`}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex justify-between items-center">
-          <span className="truncate">{title}</span>
+    <Card className={`w-full max-w-md relative ${isDone ? "opacity-80" : ""} ${statusStyles[status]}`}>
+      <CardHeader className="pb-3 flex justify-between items-center">
+        <CardTitle className="flex-1 truncate">{title}</CardTitle>
 
-          <div className="flex gap-2 items-center">
-            <Badge className={priorityStyles[priority]}>
-              {priority.toUpperCase()}
-            </Badge>
-            {isDone && <Badge variant="secondary">DONE</Badge>}
-          </div>
-        </CardTitle>
+        <div className="flex gap-2 items-center">
+          <Badge className={priorityStyles[priority]}>{priority.toUpperCase()}</Badge>
+          {isDone && <Badge variant="secondary">DONE</Badge>}
+          {onEdit && (
+            <button onClick={() => onEdit({ taskId, title, priority, dueDate, status })}>
+              <Edit2 size={16} />
+            </button>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent className="flex items-center gap-2 text-muted-foreground">

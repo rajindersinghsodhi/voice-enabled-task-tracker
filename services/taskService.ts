@@ -1,0 +1,51 @@
+import axios from "axios";
+
+const createTask = async ({ title, priority, dueDate }:{ title: string, priority: string, dueDate: string }) => {
+    try {
+        const { data } = await axios.post(`http://localhost:8000/api/v1/tasks`, 
+            {
+                title,
+                priority,
+                dueDate
+            }
+        )
+
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getTasks = async () => {
+    try {
+        const { data } = await axios.get(`http://localhost:8000/api/v1/tasks`)
+
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const updateTask = async ({ taskId, updates }: { taskId: string, updates: any }) => {
+    try {
+        const { data } = await axios.patch(`http://localhost:8000/api/v1/tasks/${taskId}`, updates);
+
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const deleteTask = async ({ taskId }: { taskId: string }) => {
+    try {
+
+        console.log("called delete")
+        const { data } = await axios.delete(`http://localhost:8000/api/v1/tasks/${taskId}`);
+
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export default { createTask, getTasks, updateTask, deleteTask };

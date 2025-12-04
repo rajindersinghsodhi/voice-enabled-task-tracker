@@ -36,7 +36,6 @@ import { CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskType } from "./Task"
 
-// Zod schema for validation
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required"),
   priority: z.enum(["low", "medium", "high"]),
@@ -48,8 +47,10 @@ type TaskInputProps = {
 }
 
 const TaskInput = ({ addTask }: TaskInputProps) => {
+  const [open, setOpen] = useState(false)   // ✅ CONTROL DIALOG
   const [title, setTitle] = useState("")
-  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium")
+  const [priority, setPriority] =
+    useState<"low" | "medium" | "high">("medium")
   const [date, setDate] = useState<Date | undefined>()
   const [error, setError] = useState<string | null>(null)
 
@@ -69,19 +70,25 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
 
     setError(null)
 
-    // ✅ Add status: "todo" for new tasks
     const task: TaskType = { ...result.data, status: "todo" }
+
     addTask(task)
 
-    // Reset form
+    // ✅ RESET FORM
     setTitle("")
     setPriority("medium")
     setDate(undefined)
+
+    // ✅ CLOSE DIALOG
+    setOpen(false)
   }
 
   return (
     <div className="task-input-flex">
-      <Dialog>
+
+      {/* ✅ CONTROLLED DIALOG */}
+      <Dialog open={open} onOpenChange={setOpen}>
+
         <DialogTrigger asChild>
           <Button>Add Task</Button>
         </DialogTrigger>
@@ -93,7 +100,7 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
 
           <div className="grid gap-4">
 
-            {/* ✅ TITLE */}
+            {/* TITLE */}
             <div className="grid gap-2">
               <Label>Title</Label>
               <Input
@@ -103,7 +110,7 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
               />
             </div>
 
-            {/* ✅ PRIORITY */}
+            {/* PRIORITY */}
             <div className="grid gap-2">
               <Label>Priority</Label>
               <Select
@@ -123,7 +130,7 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
               </Select>
             </div>
 
-            {/* ✅ DUE DATE */}
+            {/* DUE DATE */}
             <div className="grid gap-2">
               <Label>Due Date</Label>
               <Popover>
@@ -151,11 +158,12 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
               </Popover>
             </div>
 
-            {/* ✅ ERROR */}
+            {/* ERROR */}
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            {/* ✅ SUBMIT BUTTON */}
+            {/* SUBMIT */}
             <Button onClick={submitTask}>Create Task</Button>
+
           </div>
         </DialogContent>
       </Dialog>
