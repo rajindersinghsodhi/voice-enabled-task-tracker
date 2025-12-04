@@ -9,6 +9,7 @@ type TaskProps = {
   title: string
   priority: "low" | "medium" | "high"
   dueDate: string // YYYY-MM-DD
+  status: "todo" | "done"
 }
 
 const priorityStyles = {
@@ -17,16 +18,26 @@ const priorityStyles = {
   high: "bg-red-100 text-red-700"
 }
 
-const Task = ({ title, priority, dueDate }: TaskProps) => {
+const statusStyles = {
+  todo: "",
+  done: "bg-green-50 border border-green-200"
+}
+
+const Task = ({ title, priority, dueDate, status }: TaskProps) => {
+  const isDone = status === "done"
+
   return (
-    <Card className="w-full max-w-md">
+    <Card className={`w-full max-w-md ${isDone ? "opacity-80" : ""} ${statusStyles[status]}`}>
       <CardHeader className="pb-3">
         <CardTitle className="flex justify-between items-center">
           <span className="truncate">{title}</span>
 
-          <Badge className={priorityStyles[priority]}>
-            {priority.toUpperCase()}
-          </Badge>
+          <div className="flex gap-2 items-center">
+            <Badge className={priorityStyles[priority]}>
+              {priority.toUpperCase()}
+            </Badge>
+            {isDone && <Badge variant="secondary">DONE</Badge>}
+          </div>
         </CardTitle>
       </CardHeader>
 
