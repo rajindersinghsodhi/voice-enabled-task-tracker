@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 
-type TaskProps = {
+export type TaskType = {
   title: string
   priority: "low" | "medium" | "high"
   dueDate: string // YYYY-MM-DD
   status: "todo" | "done"
 }
+
+type TaskProps = TaskType
 
 const priorityStyles = {
   low: "bg-green-100 text-green-700",

@@ -1,35 +1,22 @@
 "use client"
 
-import Task from "./Task"
-import { TaskType } from "./TodoList"
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import { TaskType } from "./Task"
+import SortableTask from "./SortableTask"
 
 type DoneListProps = {
-  doneTasks: TaskType[]
+  tasks: TaskType[]
 }
 
-const DoneList = ({ doneTasks }: DoneListProps) => {
-  if (!doneTasks.length) {
-    return (
-      <div className="text-center text-muted-foreground py-6">
-        No completed tasks yet 🎉
-      </div>
-    )
-  }
-
+const DoneList = ({ tasks }: DoneListProps) => {
   return (
-    <div className="done-list flex flex-col items-center w-full gap-3">
-        <p className="text-lg font-medium">Done</p>
-        <div className="task-list flex flex-col gap-4 w-full items-center border shadow-md p-5 rounded-md">
-            {doneTasks.map((task, index) => (
-                <Task
-                key={`${task.title}-${index}`}
-                title={task.title}
-                priority={task.priority}
-                dueDate={task.dueDate}
-                status={task.status}
-                />
-            ))}
-        </div>
+    <div className="flex-1 p-4 rounded-lg  overflow-y-auto border-2 border-blue-500">
+      {/* <h2 className="font-bold mb-4 text-lg">Done</h2>
+      <SortableContext items={tasks.map(t => t.title)} strategy={verticalListSortingStrategy}>
+        {tasks.map(task => (
+          <SortableTask key={task.title} task={task} />
+        ))}
+      </SortableContext> */}
     </div>
   )
 }

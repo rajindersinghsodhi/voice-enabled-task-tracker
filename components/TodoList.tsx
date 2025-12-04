@@ -1,41 +1,22 @@
 "use client"
 
-import Task from "./Task"
-
-export type TaskType = {
-  title: string
-  priority: "low" | "medium" | "high"
-  dueDate: string // YYYY-MM-DD
-  status: "todo" | "done"
-}
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import SortableTask from "./SortableTask"
+import { TaskType } from "./Task"
 
 type TodoListProps = {
   tasks: TaskType[]
 }
 
 const TodoList = ({ tasks }: TodoListProps) => {
-  if (!tasks.length) {
-    return (
-      <div className="text-center text-muted-foreground py-6">
-        No tasks yet. Add your first task ✅
-      </div>
-    )
-  }
-
   return (
-    <div className="todo-list flex flex-col items-center w-full gap-3">
-        <p className="text-lg font-medium">Todo</p>
-        <div className="task-list flex flex-col gap-4 w-full items-center border shadow-md p-5 rounded-md">
-            {tasks.map((task, index) => (
-                <Task
-                    key={`${task.title}-${index}`}
-                    title={task.title}
-                    priority={task.priority}
-                    dueDate={task.dueDate}
-                    status={task.status}
-                />
-            ))}
-        </div>
+    <div className="flex-1 bg-gray-50 p-4 rounded-lg min-h-[400px] max-h-[600px] overflow-y-auto">
+      <h2 className="font-bold mb-4 text-lg">Todo</h2>
+      <SortableContext items={tasks.map(t => t.title)} strategy={verticalListSortingStrategy}>
+        {tasks.map(task => (
+          <SortableTask key={task.title} task={task} />
+        ))}
+      </SortableContext>
     </div>
   )
 }
