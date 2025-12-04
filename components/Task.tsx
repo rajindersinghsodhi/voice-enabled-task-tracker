@@ -30,7 +30,7 @@ const Task = ({ taskId, title, priority, dueDate, status, onEdit }: TaskProps) =
   const isDone = status === "done"
 
   return (
-    <Card className={`w-full max-w-md relative ${isDone ? "opacity-80" : ""} ${statusStyles[status]}`}>
+    <Card className={`w-full relative ${isDone ? "opacity-80" : ""} ${statusStyles[status]}`}>
       <CardHeader className="pb-3 flex justify-between items-center">
         <CardTitle className="flex-1 truncate">{title}</CardTitle>
 
@@ -42,6 +42,7 @@ const Task = ({ taskId, title, priority, dueDate, status, onEdit }: TaskProps) =
               <Edit2 size={16} />
             </button>
           )}
+
         </div>
       </CardHeader>
 

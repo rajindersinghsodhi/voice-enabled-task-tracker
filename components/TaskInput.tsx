@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { z } from "zod"
 import { format } from "date-fns"
 
@@ -32,9 +32,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, Mic } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskType } from "./Task"
+import taskService from "@/services/taskService"
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -47,12 +48,61 @@ type TaskInputProps = {
 }
 
 const TaskInput = ({ addTask }: TaskInputProps) => {
-  const [open, setOpen] = useState(false)   // ✅ CONTROL DIALOG
+  const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [priority, setPriority] =
     useState<"low" | "medium" | "high">("medium")
   const [date, setDate] = useState<Date | undefined>()
   const [error, setError] = useState<string | null>(null)
+
+  // ✅ VOICE RECOGNITION REF
+  const recognitionRef = useRef<any>(null)
+
+  // ✅ FUNCTION TO GET SPOKEN TEXT
+  const startVoiceRecognition = () => {
+    if (!("webkitSpeechRecognition" in window)) {
+      alert("Voice recognition not supported in this browser")
+      return
+    }
+
+    const SpeechRecognition =
+      (window as any).webkitSpeechRecognition
+
+    const recognition = new SpeechRecognition()
+
+    recognition.lang = "en-US"
+    recognition.continuous = false
+    recognition.interimResults = false
+
+    recognition.onresult = async (event: any) => {
+      const sentence = event.results[0][0].transcript
+
+        console.log(sentence)
+      const { taskPayload } = await taskService.parseSpeechToTask({ speechText: sentence });
+
+      console.log(taskPayload)
+
+      if (taskPayload?.title) {
+    setTitle(taskPayload.title)
+  }
+
+  if (taskPayload?.priority) {
+    setPriority(taskPayload.priority)
+  }
+
+  if (taskPayload?.dueDate) {
+    setDate(new Date(taskPayload.dueDate))
+  }
+    }
+
+    recognition.onerror = (err: any) => {
+      console.error("Voice error:", err)
+    }
+
+    recognition.start()
+
+    recognitionRef.current = recognition
+  }
 
   const submitTask = () => {
     const payload = {
@@ -74,19 +124,16 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
 
     addTask(task)
 
-    // ✅ RESET FORM
     setTitle("")
     setPriority("medium")
     setDate(undefined)
 
-    // ✅ CLOSE DIALOG
     setOpen(false)
   }
 
   return (
     <div className="task-input-flex">
 
-      {/* ✅ CONTROLLED DIALOG */}
       <Dialog open={open} onOpenChange={setOpen}>
 
         <DialogTrigger asChild>
@@ -103,11 +150,24 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
             {/* TITLE */}
             <div className="grid gap-2">
               <Label>Title</Label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Buy groceries..."
-              />
+
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Buy groceries..."
+                />
+
+                {/* 🎙️ MIC BUTTON */}
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={startVoiceRecognition}
+                  type="button"
+                >
+                  <Mic size={16} />
+                </Button>
+              </div>
             </div>
 
             {/* PRIORITY */}
@@ -158,10 +218,8 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
               </Popover>
             </div>
 
-            {/* ERROR */}
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            {/* SUBMIT */}
             <Button onClick={submitTask}>Create Task</Button>
 
           </div>

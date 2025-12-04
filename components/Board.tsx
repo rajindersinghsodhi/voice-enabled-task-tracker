@@ -153,15 +153,15 @@ export default function KanbanBoard() {
       >
 
         {/* ✅ BOARD AREA */}
-        <div className="flex gap-6 px-4 py-4 flex-1 overflow-x-auto">
+        <div className="flex justify-start gap-3 px-4 py-4 flex-1 w-fit overflow-x-auto">
 
           {/* TODO COLUMN */}
           <DroppableColumn id="todo">
-            <div className="flex-1 p-4 rounded-lg flex flex-col h-full border shadow-md">
-              <h2 className="font-bold mb-4 text-lg">Todo</h2>
+            <div className="flex-1 p-4 rounded-lg flex flex-col h-full max-w-fit border shadow-md">
+              <p className="font-bold mb-4 text-lg">Todo</p>
 
               {/* ✅ SCROLL ZONE */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto hide-scrollbar w-full">
                 <SortableContext
                   items={todos.map(t => t.taskId)}
                   strategy={verticalListSortingStrategy}
@@ -179,11 +179,11 @@ export default function KanbanBoard() {
 
           {/* DONE COLUMN */}
           <DroppableColumn id="done">
-            <div className="flex-1 p-4 rounded-lg flex flex-col h-full border shadow-md">
-              <h2 className="font-bold mb-4 text-lg">Done</h2>
+            <div className="flex-1 p-4 rounded-lg flex flex-col max-w-fit h-full border shadow-md">
+              <p className="font-bold mb-4 text-lg">Done</p>
 
               {/* ✅ SCROLL ZONE */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto hide-scrollbar w-full">
                 <SortableContext
                   items={done.map(t => t.taskId)}
                   strategy={verticalListSortingStrategy}

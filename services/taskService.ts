@@ -38,8 +38,6 @@ const updateTask = async ({ taskId, updates }: { taskId: string, updates: any })
 
 const deleteTask = async ({ taskId }: { taskId: string }) => {
     try {
-
-        console.log("called delete")
         const { data } = await axios.delete(`http://localhost:8000/api/v1/tasks/${taskId}`);
 
         return data;
@@ -48,4 +46,15 @@ const deleteTask = async ({ taskId }: { taskId: string }) => {
     }
 }
 
-export default { createTask, getTasks, updateTask, deleteTask };
+const parseSpeechToTask = async ({ speechText }: { speechText: string }) => {
+    try {
+        console.log(speechText)
+        const { data } = await axios.post(`http://localhost:8000/api/v1/tasks/voice`, { speechText });
+
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export default { createTask, getTasks, updateTask, deleteTask, parseSpeechToTask };
