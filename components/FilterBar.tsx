@@ -15,9 +15,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { CalendarIcon, Search, X } from "lucide-react"
+import { CalendarIcon, Search, X, Filter } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 
 interface FilterBarProps {
   searchQuery: string
@@ -42,96 +43,118 @@ const FilterBar = ({
   setDueDateFilter,
   onClearFilters,
 }: FilterBarProps) => {
-  const hasActiveFilters = searchQuery || statusFilter !== "all" || priorityFilter !== "all" || dueDateFilter
+  const activeFiltersCount = [
+    statusFilter !== "all",
+    priorityFilter !== "all",
+    dueDateFilter !== undefined,
+  ].filter(Boolean).length
+
+  const hasActiveFilters = searchQuery || activeFiltersCount > 0
 
   return (
-    <div className="w-full bg-white border rounded-lg p-4 shadow-sm mb-4">
-      <div className="flex flex-col gap-4">
-        {/* Search Bar */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <Input
-            placeholder="Search tasks by title..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        {/* Filters Row */}
-        <div className="flex flex-wrap gap-3 items-center">
-          {/* Status Filter */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Status:</span>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[130px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="todo">Todo</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Priority Filter */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Priority:</span>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-[130px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Due Date Filter */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">Due Date:</span>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-[200px] justify-start text-left font-normal",
-                    !dueDateFilter && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dueDateFilter ? format(dueDateFilter, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="min-w-fit p-2" align="start">
-                <Calendar
-                  className="w-full"
-                  mode="single"
-                  selected={dueDateFilter}
-                  onSelect={setDueDateFilter}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {/* Clear Filters Button */}
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClearFilters}
-              className="ml-auto text-gray-600 hover:text-gray-900"
-            >
-              <X size={16} className="mr-1" />
-              Clear Filters
-            </Button>
-          )}
-        </div>
+    <div className="flex items-center gap-2">
+      {/* Search Bar */}
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+        <Input
+          placeholder="Search tasks by title..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10"
+        />
       </div>
+
+      {/* Filter Popover */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="relative">
+            <Filter size={18} className="mr-2" />
+            Filters
+            {activeFiltersCount > 0 && (
+              <Badge className="ml-2 px-1.5 py-0 h-5 min-w-5 flex items-center justify-center bg-blue-600">
+                {activeFiltersCount}
+              </Badge>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80" align="end">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-sm">Filter Tasks</h4>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClearFilters}
+                  className="h-auto p-1 text-xs text-gray-600 hover:text-gray-900"
+                >
+                  <X size={14} className="mr-1" />
+                  Clear All
+                </Button>
+              )}
+            </div>
+
+            {/* Status Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Status</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="todo">Todo</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Priority Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Priority</label>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Due Date Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Due Date</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !dueDateFilter && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dueDateFilter ? format(dueDateFilter, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="min-w-fit p-2" align="start">
+                  <Calendar
+                    className="w-full"
+                    mode="single"
+                    selected={dueDateFilter}
+                    onSelect={setDueDateFilter}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }

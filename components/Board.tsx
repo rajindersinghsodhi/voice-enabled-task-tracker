@@ -156,7 +156,7 @@ export default function Board() {
   return (
     <div className="board flex flex-col h-screen">
       {/* Filter Bar */}
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-4 pb-2">
         <FilterBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
