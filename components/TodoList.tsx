@@ -1,24 +1,38 @@
-"use client"
+import { useDroppable } from "@dnd-kit/core"
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
 
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import SortableTask from "./SortableTask"
 import { TaskType } from "./Task"
 
-type TodoListProps = {
+type Props = {
   tasks: TaskType[]
 }
 
-const TodoList = ({ tasks }: TodoListProps) => {
+export default function TodoList({ tasks }: Props) {
+  const { setNodeRef } = useDroppable({ id: "todo" })
+
   return (
-    <div className="flex-1 bg-gray-50 p-4 rounded-lg min-h-[400px] max-h-[600px] overflow-y-auto">
-      <h2 className="font-bold mb-4 text-lg">Todo</h2>
-      <SortableContext items={tasks.map(t => t.title)} strategy={verticalListSortingStrategy}>
-        {tasks.map(task => (
-          <SortableTask key={task.title} task={task} />
-        ))}
-      </SortableContext>
+    <div ref={setNodeRef} className="flex-1">
+      <div className="p-4 rounded-lg h-full border shadow-md flex flex-col">
+        <p className="font-bold mb-4 text-lg">Todo</p>
+
+        <div className="flex-1 flex flex-col gap-3 overflow-y-auto hide-scrollbar">
+          <SortableContext
+            items={tasks.map(t => t.taskId)}
+            strategy={verticalListSortingStrategy}
+          >
+            {tasks.map(task => (
+              <SortableTask
+                key={task.taskId}
+                task={task}
+              />
+            ))}
+          </SortableContext>
+        </div>
+      </div>
     </div>
   )
 }
-
-export default TodoList
