@@ -157,11 +157,11 @@ export default function KanbanBoard() {
 
           {/* TODO COLUMN */}
           <DroppableColumn id="todo">
-            <div className="flex-1 p-4 rounded-lg flex flex-col h-full max-w-fit border shadow-md">
+            <div className="flex-1 p-4 rounded-lg flex flex-col max-w-fit h-full border shadow-md">
               <p className="font-bold mb-4 text-lg">Todo</p>
 
               {/* ✅ SCROLL ZONE */}
-              <div className="flex-1 overflow-y-auto hide-scrollbar w-full">
+              <div className="flex-1 flex flex-col gap-3 overflow-y-auto hide-scrollbar w-full">
                 <SortableContext
                   items={todos.map(t => t.taskId)}
                   strategy={verticalListSortingStrategy}
@@ -183,7 +183,7 @@ export default function KanbanBoard() {
               <p className="font-bold mb-4 text-lg">Done</p>
 
               {/* ✅ SCROLL ZONE */}
-              <div className="flex-1 overflow-y-auto hide-scrollbar w-full">
+              <div className="flex-1 flex flex-col gap-3 overflow-y-auto hide-scrollbar w-full">
                 <SortableContext
                   items={done.map(t => t.taskId)}
                   strategy={verticalListSortingStrategy}

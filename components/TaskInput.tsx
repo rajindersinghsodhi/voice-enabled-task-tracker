@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { z } from "zod"
 import { format } from "date-fns"
 
@@ -32,7 +32,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 
-import { CalendarIcon, Mic } from "lucide-react"
+import { CalendarIcon, Mic, Podcast } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskType } from "./Task"
 import taskService from "@/services/taskService"
@@ -54,6 +54,8 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
     useState<"low" | "medium" | "high">("medium")
   const [date, setDate] = useState<Date | undefined>()
   const [error, setError] = useState<string | null>(null)
+  const [isListening, setIsListening] = useState(false)
+
 
   // ✅ VOICE RECOGNITION REF
   const recognitionRef = useRef<any>(null)
@@ -73,6 +75,10 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
     recognition.lang = "en-US"
     recognition.continuous = false
     recognition.interimResults = false
+
+    recognition.onstart = () => {
+    setIsListening(true)
+  }
 
     recognition.onresult = async (event: any) => {
       const sentence = event.results[0][0].transcript
@@ -98,6 +104,16 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
     recognition.onerror = (err: any) => {
       console.error("Voice error:", err)
     }
+
+    recognition.onerror = (err: any) => {
+    console.error("Voice error:", err)
+    setIsListening(false) // ✅ ensure cleanup
+  }
+
+  // ✅ MIC STOPPED
+  recognition.onend = () => {
+    setIsListening(false)
+  }
 
     recognition.start()
 
@@ -131,6 +147,10 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
     setOpen(false)
   }
 
+  useEffect(() => {
+    console.log("listening is", isListening)
+  }, [isListening])
+
   return (
     <div className="task-input-flex">
 
@@ -144,7 +164,24 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
           <DialogHeader>
             <DialogTitle>Add your task below</DialogTitle>
           </DialogHeader>
+          <div className="flex justify-center w-full">
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={startVoiceRecognition}
+              type="button"
+              className={`p-5 rounded-full transition ${
+                isListening ? "animate-pulse ring-2 ring-black ring-offset-2" : ""
+              }`}
+            >
+              {!isListening ? (
+                <Mic size={16} />
+              ) : (
+                <Podcast size={16} className="animate-bounce" />
+              )}
+            </Button>
 
+          </div>
           <div className="grid gap-4">
 
             {/* TITLE */}
@@ -157,16 +194,6 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Buy groceries..."
                 />
-
-                {/* 🎙️ MIC BUTTON */}
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={startVoiceRecognition}
-                  type="button"
-                >
-                  <Mic size={16} />
-                </Button>
               </div>
             </div>
 

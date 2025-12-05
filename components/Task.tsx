@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CalendarIcon, Edit2 } from "lucide-react"
+import { CalendarIcon, CircleCheckBig, Edit2 } from "lucide-react"
 import { format } from "date-fns"
 
 export type TaskType = {
@@ -30,25 +30,24 @@ const Task = ({ taskId, title, priority, dueDate, status, onEdit }: TaskProps) =
   const isDone = status === "done"
 
   return (
-    <Card className={`w-full relative ${isDone ? "opacity-80" : ""} ${statusStyles[status]}`}>
-      <CardHeader className="pb-3 flex justify-between items-center">
-        <CardTitle className="flex-1 truncate">{title}</CardTitle>
-
-        <div className="flex gap-2 items-center">
-          <Badge className={priorityStyles[priority]}>{priority.toUpperCase()}</Badge>
-          {isDone && <Badge variant="secondary">DONE</Badge>}
-          {onEdit && (
-            <button onClick={() => onEdit({ taskId, title, priority, dueDate, status })}>
-              <Edit2 size={16} />
-            </button>
-          )}
-
-        </div>
-      </CardHeader>
-
-      <CardContent className="flex items-center gap-2 text-muted-foreground">
-        <CalendarIcon size={16} />
-        <span>{format(new Date(dueDate), "dd MMM yyyy")}</span>
+    <Card className={`w-full ${isDone ? "opacity-80" : ""} ${statusStyles[status]}`}>
+        <CardContent className="flex w-full justify-between items-center gap-2 text-muted-foreground p-3">
+          <div className="task flex flex-col gap-2 items-start">
+            <p>{title}</p>
+            <div className="flex items-center gap-2">
+              <CalendarIcon size={16} />
+              <span>{format(new Date(dueDate), "dd MMM yyyy")}</span>
+            </div>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <Badge className={priorityStyles[priority]}>{priority.toUpperCase()}</Badge>
+            {isDone && <CircleCheckBig height={16} strokeWidth={3} />}
+            {onEdit && (
+              <button onClick={() => onEdit({ taskId, title, priority, dueDate, status })}>
+                <Edit2 size={16} />
+              </button>
+            )}
+          </div>
       </CardContent>
     </Card>
   )
