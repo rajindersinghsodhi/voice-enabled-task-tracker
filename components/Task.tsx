@@ -4,6 +4,8 @@ import { CalendarIcon, CircleCheckBig, Edit2, Trash2, GripVertical } from "lucid
 import { format } from "date-fns"
 import { useAppDispatch } from "@/store/hooks"
 import { deleteTask } from "@/store/tasksSlice"
+import { useState } from "react"
+import TaskInput from "./TaskInput"
 
 export type TaskType = {
   taskId: string,
@@ -14,7 +16,6 @@ export type TaskType = {
 }
 
 type TaskProps = TaskType & {
-  onEdit?: (task: TaskType) => void
   dragHandleProps?: any
 }
 
@@ -29,9 +30,10 @@ const statusStyles = {
   done: "bg-green-50 border border-green-200"
 }
 
-const Task = ({ taskId, title, priority, dueDate, status, onEdit, dragHandleProps }: TaskProps) => {
+const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: TaskProps) => {
   const dispatch = useAppDispatch()
   const isDone = status === "done"
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -47,47 +49,60 @@ const Task = ({ taskId, title, priority, dueDate, status, onEdit, dragHandleProp
     }
   }
 
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setEditDialogOpen(true)
+  }
+
   return (
-    <Card className={`w-full ${isDone ? "opacity-80" : ""} ${statusStyles[status]}`}>
-      <CardContent className="flex w-full justify-between items-center gap-2 text-muted-foreground p-3">
-        {/* Drag Handle */}
-        <div 
-          {...dragHandleProps}
-          className="cursor-grab active:cursor-grabbing hover:text-gray-700"
-        >
-          <GripVertical size={20} />
-        </div>
-
-        <div className="task flex flex-col gap-2 items-start flex-1">
-          <p>{title}</p>
-          <div className="flex items-center gap-2">
-            <CalendarIcon size={16} />
-            <span>{format(new Date(dueDate), "dd MMM yyyy")}</span>
+    <>
+      <Card className={`w-full ${isDone ? "opacity-80" : ""} ${statusStyles[status]}`}>
+        <CardContent className="flex w-full justify-between items-center gap-2 text-muted-foreground p-3">
+          {/* Drag Handle */}
+          <div 
+            {...dragHandleProps}
+            className="cursor-grab active:cursor-grabbing hover:text-gray-700"
+          >
+            <GripVertical size={20} />
           </div>
-        </div>
 
-        <div className="flex flex-col items-center gap-2">
-          <Badge className={priorityStyles[priority]}>{priority.toUpperCase()}</Badge>
-          {isDone && <CircleCheckBig height={16} strokeWidth={3} />}
-          <div className="flex items-center gap-2">
-            {onEdit && (
+          <div className="task flex flex-col gap-2 items-start flex-1">
+            <p>{title}</p>
+            <div className="flex items-center gap-2">
+              <CalendarIcon size={16} />
+              <span>{format(new Date(dueDate), "dd MMM yyyy")}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center gap-2">
+            <Badge className={priorityStyles[priority]}>{priority.toUpperCase()}</Badge>
+            {isDone && <CircleCheckBig height={16} strokeWidth={3} />}
+            <div className="flex items-center gap-2">
               <button 
-                onClick={() => onEdit({ taskId, title, priority, dueDate, status })}
+                onClick={handleEdit}
                 className="hover:text-blue-600 transition-colors"
               >
                 <Edit2 size={16} />
               </button>
-            )}
-            <button 
-              onClick={handleDelete}
-              className="hover:text-red-600 transition-colors"
-            >
-              <Trash2 size={16} />
-            </button>
+              <button 
+                onClick={handleDelete}
+                className="hover:text-red-600 transition-colors"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Edit Dialog */}
+      <TaskInput 
+        editTask={{ taskId, title, priority, dueDate, status }}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+      />
+    </>
   )
 }
 

@@ -34,6 +34,14 @@ export const createTask = createAsyncThunk(
   }
 )
 
+export const updateTask = createAsyncThunk(
+  'tasks/updateTask',
+  async ({ taskId, updates }: { taskId: string; updates: Partial<TaskType> }) => {
+    await taskService.updateTask({ taskId, updates })
+    return { taskId, updates }
+  }
+)
+
 export const updateTaskStatus = createAsyncThunk(
   'tasks/updateTaskStatus',
   async ({ taskId, status }: { taskId: string; status: 'todo' | 'done' }) => {
@@ -101,6 +109,21 @@ const tasksSlice = createSlice({
       })
       .addCase(createTask.fulfilled, (state, action) => {
         state.todos.push(action.payload)
+      })
+      .addCase(updateTask.fulfilled, (state, action) => {
+        const { taskId, updates } = action.payload
+        
+        // Find and update in todos
+        const todoIndex = state.todos.findIndex(t => t.taskId === taskId)
+        if (todoIndex !== -1) {
+          state.todos[todoIndex] = { ...state.todos[todoIndex], ...updates }
+        }
+        
+        // Find and update in done
+        const doneIndex = state.done.findIndex(t => t.taskId === taskId)
+        if (doneIndex !== -1) {
+          state.done[doneIndex] = { ...state.done[doneIndex], ...updates }
+        }
       })
       .addCase(deleteTask.fulfilled, (state, action) => {
         const taskId = action.payload

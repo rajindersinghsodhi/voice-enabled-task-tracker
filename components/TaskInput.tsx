@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils"
 import { TaskType } from "./Task"
 import taskService from "@/services/taskService"
 import { useAppDispatch } from "@/store/hooks"
-import { createTask } from "@/store/tasksSlice"
+import { createTask, updateTask } from "@/store/tasksSlice"
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -39,17 +39,41 @@ const taskSchema = z.object({
   dueDate: z.string(),
 })
 
-const TaskInput = () => {
+interface TaskInputProps {
+  editTask?: TaskType | null
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
+const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: TaskInputProps) => {
   const dispatch = useAppDispatch()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium")
   const [date, setDate] = useState<Date | undefined>()
   const [error, setError] = useState<string | null>(null)
   const [isListening, setIsListening] = useState(false)
 
+  const isEditMode = !!editTask
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = onOpenChange || setInternalOpen
+
   // ✅ VOICE RECOGNITION REF
   const recognitionRef = useRef<any>(null)
+
+  // Populate form when editing
+  useEffect(() => {
+    if (editTask) {
+      setTitle(editTask.title)
+      setPriority(editTask.priority)
+      setDate(new Date(editTask.dueDate))
+    } else {
+      // Reset form when not editing
+      setTitle("")
+      setPriority("medium")
+      setDate(undefined)
+    }
+  }, [editTask])
 
   // ✅ FUNCTION TO GET SPOKEN TEXT
   const startVoiceRecognition = () => {
@@ -119,9 +143,17 @@ const TaskInput = () => {
 
     setError(null)
 
-    const task: TaskType = { ...result.data, status: "todo" }
-
-    dispatch(createTask(task))
+    if (isEditMode && editTask) {
+      // Update existing task
+      dispatch(updateTask({
+        taskId: editTask.taskId,
+        updates: result.data
+      }))
+    } else {
+      // Create new task
+      const task: TaskType = { ...result.data, status: "todo" }
+      dispatch(createTask(task))
+    }
 
     setTitle("")
     setPriority("medium")
@@ -136,13 +168,15 @@ const TaskInput = () => {
   return (
     <div className="task-input-flex">
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button>Add Task</Button>
-        </DialogTrigger>
+        {!isEditMode && (
+          <DialogTrigger asChild>
+            <Button>Add Task</Button>
+          </DialogTrigger>
+        )}
 
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add your task below</DialogTitle>
+            <DialogTitle>{isEditMode ? "Edit your task" : "Add your task below"}</DialogTitle>
           </DialogHeader>
           <div className="flex justify-center w-full">
             <Button
@@ -224,7 +258,9 @@ const TaskInput = () => {
 
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            <Button onClick={submitTask}>Create Task</Button>
+            <Button onClick={submitTask}>
+              {isEditMode ? "Update Task" : "Create Task"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
