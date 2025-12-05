@@ -1,4 +1,3 @@
-// store/tasksSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { TaskType } from '@/components/Task'
 import taskService from '@/services/taskService'
@@ -17,7 +16,6 @@ const initialState: TasksState = {
   error: null,
 }
 
-// Async thunks
 export const fetchTasks = createAsyncThunk(
   'tasks/fetchTasks',
   async () => {

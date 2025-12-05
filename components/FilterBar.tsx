@@ -43,17 +43,11 @@ const FilterBar = ({
   setDueDateFilter,
   onClearFilters,
 }: FilterBarProps) => {
-  const activeFiltersCount = [
-    statusFilter !== "all",
-    priorityFilter !== "all",
-    dueDateFilter !== undefined,
-  ].filter(Boolean).length
-
-  const hasActiveFilters = searchQuery || activeFiltersCount > 0
+  const activeFiltersCount = [ statusFilter !== "all", priorityFilter !== "all", dueDateFilter !== undefined ].filter(Boolean).length;
+  const hasActiveFilters = searchQuery || activeFiltersCount > 0;
 
   return (
     <div className="flex items-center gap-2">
-      {/* Search Bar */}
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         <Input
@@ -63,8 +57,6 @@ const FilterBar = ({
           className="pl-10"
         />
       </div>
-
-      {/* Filter Popover */}
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" className="relative">
@@ -93,8 +85,6 @@ const FilterBar = ({
                 </Button>
               )}
             </div>
-
-            {/* Status Filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Status</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -108,8 +98,6 @@ const FilterBar = ({
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Priority Filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Priority</label>
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -119,13 +107,10 @@ const FilterBar = ({
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
                   <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="high">High</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Due Date Filter */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Due Date</label>
               <Popover>

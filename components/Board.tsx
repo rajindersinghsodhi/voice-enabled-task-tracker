@@ -1,6 +1,14 @@
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
+import { useAppDispatch, useAppSelector } from "../store/hooks"
+import {
+  fetchTasks,
+  reorderTodos,
+  reorderDone,
+  moveTaskBetweenColumns,
+  updateTaskStatus,
+} from "@/store/tasksSlice"
 import {
   DndContext,
   closestCenter,
@@ -17,73 +25,49 @@ import TaskInput from "./TaskInput"
 import TodoList from "./TodoList"
 import DoneList from "./DoneList"
 import FilterBar from "./FilterBar"
-import { useAppDispatch, useAppSelector } from "../store/hooks"
-import {
-  fetchTasks,
-  reorderTodos,
-  reorderDone,
-  moveTaskBetweenColumns,
-  updateTaskStatus,
-} from "@/store/tasksSlice"
 import { format } from "date-fns"
 
 export default function Board() {
   const dispatch = useAppDispatch()
   const { todos, done } = useAppSelector((state) => state.tasks)
   const [activeTask, setActiveTask] = useState<TaskType | null>(null)
-  const sensors = useSensors(useSensor(PointerSensor))
-
-  // Filter states
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [priorityFilter, setPriorityFilter] = useState("all")
   const [dueDateFilter, setDueDateFilter] = useState<Date | undefined>()
-
-  // LOAD TASKS
-  useEffect(() => {
-    dispatch(fetchTasks())
-  }, [dispatch])
-
-  // Filter tasks based on search and filters
+  
+  const sensors = useSensors(useSensor(PointerSensor))
+  
   const filteredTasks = useMemo(() => {
     let allTasks = [...todos, ...done]
 
-    // Search by title
     if (searchQuery.trim()) {
-      allTasks = allTasks.filter((task) =>
-        task.title.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      allTasks = allTasks.filter((task) => task.title.toLowerCase().includes(searchQuery.toLowerCase()));
     }
 
-    // Filter by status
-    if (statusFilter !== "all") {
-      allTasks = allTasks.filter((task) => task.status === statusFilter)
+    if (statusFilter !== "all") { 
+      allTasks = allTasks.filter((task) => task.status === statusFilter);
     }
 
-    // Filter by priority
     if (priorityFilter !== "all") {
-      allTasks = allTasks.filter((task) => task.priority === priorityFilter)
+      allTasks = allTasks.filter((task) => task.priority === priorityFilter);
     }
 
-    // Filter by due date
     if (dueDateFilter) {
-      const filterDate = format(dueDateFilter, "yyyy-MM-dd")
+      const filterDate = format(dueDateFilter, "yyyy-MM-dd");
 
       allTasks = allTasks.filter((task) => {
-        const taskDate = format(new Date(task.dueDate), "yyyy-MM-dd")
+        const taskDate = format(new Date(task.dueDate), "yyyy-MM-dd");
         return taskDate === filterDate
       })
     }
 
-
-    // Separate back into todos and done
     return {
       filteredTodos: allTasks.filter((task) => task.status === "todo"),
       filteredDone: allTasks.filter((task) => task.status === "done"),
     }
   }, [todos, done, searchQuery, statusFilter, priorityFilter, dueDateFilter])
 
-  // Clear all filters
   const handleClearFilters = () => {
     setSearchQuery("")
     setStatusFilter("all")
@@ -91,16 +75,12 @@ export default function Board() {
     setDueDateFilter(undefined)
   }
 
-  // DRAG START
   const handleDragStart = (event: DragStartEvent) => {
     const id = event.active.id
-    const task =
-      todos.find((todo: TaskType) => todo.taskId === id) ||
-      done.find((todo: TaskType) => todo.taskId === id)
+    const task = todos.find((todo: TaskType) => todo.taskId === id) || done.find((todo: TaskType) => todo.taskId === id)
     if (task) setActiveTask(task)
   }
 
-  // DRAG END
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     if (!over) {
@@ -112,11 +92,8 @@ export default function Board() {
     const overId = over.id
 
     const isFromTodo = todos.some((todo: TaskType) => todo.taskId === activeId)
-    const isGoingToTodo =
-      todos.some((todo: TaskType) => todo.taskId === overId) ||
-      overId === "todo"
+    const isGoingToTodo = todos.some((todo: TaskType) => todo.taskId === overId) || overId === "todo"
 
-    // 🔁 REORDER IN SAME COLUMN
     if (isFromTodo === isGoingToTodo) {
       const list = isFromTodo ? todos : done
       const oldIndex = list.findIndex((todo: TaskType) => todo.taskId === activeId)
@@ -130,9 +107,7 @@ export default function Board() {
           dispatch(reorderDone(reorderedList))
         }
       }
-    }
-    // 🔀 MOVE BETWEEN COLUMNS
-    else {
+    } else {
       const sourceList = isFromTodo ? todos : done
       const movedTask = sourceList.find((todo: TaskType) => todo.taskId === activeId)
       
@@ -154,14 +129,16 @@ export default function Board() {
         console.error("Failed to update task", err)
       }
     }
-
     setActiveTask(null)
   }
 
+  useEffect(() => {
+    dispatch(fetchTasks())
+  }, [dispatch])
+
   return (
     <div className="board flex flex-col h-screen">
-      {/* Filter Bar */}
-      <div className="px-2 sm:px-4 pt-4 pb-2">
+      <div className="filter-bar-container px-2 sm:px-4 pt-4 pb-2">
         <FilterBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -174,23 +151,15 @@ export default function Board() {
           onClearFilters={handleClearFilters}
         />
       </div>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex flex-col md:flex-row justify-start gap-3 px-2 sm:px-4 py-4 flex-1 overflow-x-auto overflow-y-auto">
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="lists-container flex flex-col md:flex-row justify-start gap-3 px-2 sm:px-4 py-4 flex-1 overflow-x-auto overflow-y-auto">
           <TodoList tasks={filteredTasks.filteredTodos} />
           <DoneList tasks={filteredTasks.filteredDone} />
         </div>
-
         <DragOverlay>
           {activeTask && <Task {...activeTask} />}
         </DragOverlay>
       </DndContext>
-
       <div className="py-4 px-2 sm:px-4 flex justify-center">
         <TaskInput />
       </div>

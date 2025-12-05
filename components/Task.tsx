@@ -1,11 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CalendarIcon, CircleCheckBig, Edit2, Trash2, GripVertical } from "lucide-react"
-import { format } from "date-fns"
-import { useAppDispatch } from "@/store/hooks"
-import { deleteTask } from "@/store/tasksSlice"
-import { useState } from "react"
-import TaskInput from "./TaskInput"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,12 +10,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { CalendarIcon, CircleCheckBig, Edit2, Trash2, GripVertical } from "lucide-react"
+import { format } from "date-fns"
+import { useAppDispatch } from "@/store/hooks"
+import { deleteTask } from "@/store/tasksSlice"
+import { useState } from "react"
+import TaskInput from "./TaskInput"
 
 export type TaskType = {
   taskId: string,
   title: string
   priority: "low" | "high"
-  dueDate: string // YYYY-MM-DD
+  dueDate: string
   status: "todo" | "done"
 }
 
@@ -35,15 +35,14 @@ const priorityStyles = {
 }
 
 const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: TaskProps) => {
-  const dispatch = useAppDispatch()
-  const isDone = status === "done"
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const dispatch = useAppDispatch();
+  const isDone = status === "done";
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
-    console.log("Delete clicked for taskId:", taskId)
     if (!taskId) {
       console.error("TaskId is undefined!")
       return
@@ -52,7 +51,6 @@ const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: Tas
   }
 
   const confirmDelete = () => {
-    console.log("Dispatching delete for:", taskId)
     dispatch(deleteTask(taskId))
     setDeleteDialogOpen(false)
   }
@@ -67,30 +65,20 @@ const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: Tas
     <>
       <Card className={`min-w-80 max-w-full`}>
         <CardContent className="flex w-full justify-between items-stretch gap-2 text-muted-foreground p-3">
-          {/* Drag Handle */}
-          <div 
-            {...dragHandleProps}
-            className="cursor-grab active:cursor-grabbing hover:text-gray-700 flex items-center"
-          >
+          <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing hover:text-gray-700 flex items-center">
             <GripVertical size={20} />
           </div>
-
           <div className="task flex flex-col gap-2 items-start justify-center flex-1">
-            <p className="text-base">
-              {title}
-            </p>
+            <p className="text-base">{title}</p>
             <div className="flex items-center gap-2 text-sm">
               <CalendarIcon size={16} />
-              <span className={isDone ? "text-gray-400" : ""}>
-                {format(new Date(dueDate), "dd MMM yyyy")}
-              </span>
+              <span className={isDone ? "text-gray-400" : ""}>{format(new Date(dueDate), "dd MMM yyyy")}</span>
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium">Priority:</p>
               <Badge className={priorityStyles[priority]}>{priority.toUpperCase()}</Badge>
             </div>
           </div>
-
           <div className={`flex flex-col self-stretch ${isDone ? 'justify-between items-end' : 'items-center justify-end gap-2'}`}>
             {isDone && (
               <div className="flex items-center gap-1 text-green-600">
@@ -99,31 +87,17 @@ const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: Tas
               </div>
             )}
             <div className="flex items-center gap-2">
-              <button 
-                onClick={handleEdit}
-                className="hover:text-blue-600 transition-colors"
-              >
+              <button  onClick={handleEdit} className="hover:text-blue-600 transition-colors">
                 <Edit2 size={16} />
               </button>
-              <button 
-                onClick={handleDelete}
-                className="hover:text-red-600 transition-colors"
-              >
+              <button  onClick={handleDelete} className="hover:text-red-600 transition-colors">
                 <Trash2 size={16} />
               </button>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* Edit Dialog */}
-      <TaskInput 
-        editTask={{ taskId, title, priority, dueDate, status }}
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-      />
-
-      {/* Delete Confirmation Dialog */}
+      <TaskInput  editTask={{ taskId, title, priority, dueDate, status }} open={editDialogOpen} onOpenChange={setEditDialogOpen}/>
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

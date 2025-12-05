@@ -47,6 +47,7 @@ interface TaskInputProps {
 
 const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: TaskInputProps) => {
   const dispatch = useAppDispatch()
+  const recognitionRef = useRef<any>(null)
   const [internalOpen, setInternalOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [priority, setPriority] = useState<"low" | "high">("low")
@@ -58,24 +59,18 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const setOpen = onOpenChange || setInternalOpen
 
-  // ✅ VOICE RECOGNITION REF
-  const recognitionRef = useRef<any>(null)
-
-  // Populate form when editing
   useEffect(() => {
     if (editTask) {
       setTitle(editTask.title)
       setPriority(editTask.priority)
       setDate(new Date(editTask.dueDate))
     } else {
-      // Reset form when not editing
       setTitle("")
       setPriority("low")
       setDate(undefined)
     }
   }, [editTask])
 
-  // ✅ FUNCTION TO GET SPOKEN TEXT
   const startVoiceRecognition = () => {
     if (!("webkitSpeechRecognition" in window)) {
       alert("Voice recognition not supported in this browser")
@@ -95,11 +90,7 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
 
     recognition.onresult = async (event: any) => {
       const sentence = event.results[0][0].transcript
-
-      console.log(sentence)
       const { taskPayload } = await taskService.parseSpeechToTask({ speechText: sentence })
-
-      console.log(taskPayload)
 
       if (taskPayload?.title) {
         setTitle(taskPayload.title)
@@ -144,13 +135,8 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
     setError(null)
 
     if (isEditMode && editTask) {
-      // Update existing task
-      dispatch(updateTask({
-        taskId: editTask.taskId,
-        updates: result.data
-      }))
+      dispatch(updateTask({ taskId: editTask.taskId, updates: result.data}))
     } else {
-      // Create new task
       const task: TaskType = { ...result.data, status: "todo" }
       dispatch(createTask(task))
     }
@@ -161,10 +147,6 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
     setOpen(false)
   }
 
-  useEffect(() => {
-    console.log("listening is", isListening)
-  }, [isListening])
-
   return (
     <div className="task-input-flex">
       <Dialog open={open} onOpenChange={setOpen}>
@@ -173,7 +155,6 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
             <Button>Add Task</Button>
           </DialogTrigger>
         )}
-
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{isEditMode ? "Edit your task" : "Add your task below"}</DialogTitle>
@@ -184,9 +165,7 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
               variant="outline"
               onClick={startVoiceRecognition}
               type="button"
-              className={`p-5 rounded-full transition ${
-                isListening ? "animate-pulse ring-2 ring-black ring-offset-2" : ""
-              }`}
+              className={`p-5 rounded-full transition ${ isListening ? "animate-pulse ring-2 ring-black ring-offset-2" : "" }`}
             >
               {!isListening ? (
                 <Mic size={16} />
@@ -196,7 +175,6 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
             </Button>
           </div>
           <div className="grid gap-4">
-            {/* TITLE */}
             <div className="grid gap-2">
               <Label>Title</Label>
               <div className="flex gap-2 items-center">
@@ -207,16 +185,9 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
                 />
               </div>
             </div>
-
-            {/* PRIORITY */}
             <div className="grid gap-2">
               <Label>Priority</Label>
-              <Select
-                value={priority}
-                onValueChange={(val) =>
-                  setPriority(val as "low" | "high")
-                }
-              >
+              <Select value={priority} onValueChange={(val) => setPriority(val as "low" | "high")}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -226,19 +197,13 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
                 </SelectContent>
               </Select>
             </div>
-
-            {/* DUE DATE */}
             <div className="grid gap-2">
               <Label>Due Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
+                    className={cn("w-full justify-start text-left font-normal",!date && "text-muted-foreground")}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {date ? format(date, "PPP") : <span>Pick a date</span>}
                   </Button>
