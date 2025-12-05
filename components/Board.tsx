@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import {
   DndContext,
   closestCenter,
@@ -16,6 +16,7 @@ import Task, { TaskType } from "./Task"
 import TaskInput from "./TaskInput"
 import TodoList from "./TodoList"
 import DoneList from "./DoneList"
+import FilterBar from "./FilterBar"
 import { useAppDispatch, useAppSelector } from "../store/hooks"
 import {
   fetchTasks,
@@ -24,6 +25,7 @@ import {
   moveTaskBetweenColumns,
   updateTaskStatus,
 } from "@/store/tasksSlice"
+import { format } from "date-fns"
 
 export default function Board() {
   const dispatch = useAppDispatch()
@@ -31,10 +33,58 @@ export default function Board() {
   const [activeTask, setActiveTask] = useState<TaskType | null>(null)
   const sensors = useSensors(useSensor(PointerSensor))
 
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [priorityFilter, setPriorityFilter] = useState("all")
+  const [dueDateFilter, setDueDateFilter] = useState<Date | undefined>()
+
   // LOAD TASKS
   useEffect(() => {
     dispatch(fetchTasks())
   }, [dispatch])
+
+  // Filter tasks based on search and filters
+  const filteredTasks = useMemo(() => {
+    let allTasks = [...todos, ...done]
+
+    // Search by title
+    if (searchQuery.trim()) {
+      allTasks = allTasks.filter((task) =>
+        task.title.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+
+    // Filter by status
+    if (statusFilter !== "all") {
+      allTasks = allTasks.filter((task) => task.status === statusFilter)
+    }
+
+    // Filter by priority
+    if (priorityFilter !== "all") {
+      allTasks = allTasks.filter((task) => task.priority === priorityFilter)
+    }
+
+    // Filter by due date
+    if (dueDateFilter) {
+      const filterDate = format(dueDateFilter, "yyyy-MM-dd")
+      allTasks = allTasks.filter((task) => task.dueDate === filterDate)
+    }
+
+    // Separate back into todos and done
+    return {
+      filteredTodos: allTasks.filter((task) => task.status === "todo"),
+      filteredDone: allTasks.filter((task) => task.status === "done"),
+    }
+  }, [todos, done, searchQuery, statusFilter, priorityFilter, dueDateFilter])
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setSearchQuery("")
+    setStatusFilter("all")
+    setPriorityFilter("all")
+    setDueDateFilter(undefined)
+  }
 
   // DRAG START
   const handleDragStart = (event: DragStartEvent) => {
@@ -105,6 +155,21 @@ export default function Board() {
 
   return (
     <div className="board flex flex-col h-screen">
+      {/* Filter Bar */}
+      <div className="px-4 pt-4">
+        <FilterBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          priorityFilter={priorityFilter}
+          setPriorityFilter={setPriorityFilter}
+          dueDateFilter={dueDateFilter}
+          setDueDateFilter={setDueDateFilter}
+          onClearFilters={handleClearFilters}
+        />
+      </div>
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -112,8 +177,8 @@ export default function Board() {
         onDragEnd={handleDragEnd}
       >
         <div className="flex justify-start gap-3 px-4 py-4 flex-1 w-fit overflow-x-auto">
-          <TodoList />
-          <DoneList />
+          <TodoList tasks={filteredTasks.filteredTodos} />
+          <DoneList tasks={filteredTasks.filteredDone} />
         </div>
 
         <DragOverlay>
