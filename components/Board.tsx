@@ -68,8 +68,13 @@ export default function Board() {
     // Filter by due date
     if (dueDateFilter) {
       const filterDate = format(dueDateFilter, "yyyy-MM-dd")
-      allTasks = allTasks.filter((task) => task.dueDate === filterDate)
+
+      allTasks = allTasks.filter((task) => {
+        const taskDate = format(new Date(task.dueDate), "yyyy-MM-dd")
+        return taskDate === filterDate
+      })
     }
+
 
     // Separate back into todos and done
     return {
@@ -90,8 +95,8 @@ export default function Board() {
   const handleDragStart = (event: DragStartEvent) => {
     const id = event.active.id
     const task =
-      todos.find(t => t.taskId === id) ||
-      done.find(t => t.taskId === id)
+      todos.find((todo: TaskType) => todo.taskId === id) ||
+      done.find((todo: TaskType) => todo.taskId === id)
     if (task) setActiveTask(task)
   }
 
@@ -106,19 +111,19 @@ export default function Board() {
     const activeId = active.id
     const overId = over.id
 
-    const isFromTodo = todos.some(t => t.taskId === activeId)
+    const isFromTodo = todos.some((todo: TaskType) => todo.taskId === activeId)
     const isGoingToTodo =
-      todos.some(t => t.taskId === overId) ||
+      todos.some((todo: TaskType) => todo.taskId === overId) ||
       overId === "todo"
 
     // 🔁 REORDER IN SAME COLUMN
     if (isFromTodo === isGoingToTodo) {
       const list = isFromTodo ? todos : done
-      const oldIndex = list.findIndex((t: any) => t.taskId === activeId)
-      const newIndex = list.findIndex((t: any) => t.taskId === overId)
+      const oldIndex = list.findIndex((todo: TaskType) => todo.taskId === activeId)
+      const newIndex = list.findIndex((todo: TaskType) => todo.taskId === overId)
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedList = arrayMove(list, oldIndex, newIndex)
+        const reorderedList: TaskType[] = arrayMove(list, oldIndex, newIndex)
         if (isFromTodo) {
           dispatch(reorderTodos(reorderedList))
         } else {
@@ -129,7 +134,7 @@ export default function Board() {
     // 🔀 MOVE BETWEEN COLUMNS
     else {
       const sourceList = isFromTodo ? todos : done
-      const movedTask = sourceList.find(t => t.taskId === activeId)
+      const movedTask = sourceList.find((todo: TaskType) => todo.taskId === activeId)
       
       if (!movedTask) return
 
