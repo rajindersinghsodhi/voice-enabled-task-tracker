@@ -38,6 +38,7 @@ const updateTask = async ({ taskId, updates }: { taskId: string, updates: any })
 
 const deleteTask = async ({ taskId }: { taskId: string }) => {
     try {
+        console.log(taskId)
         const { data } = await axios.delete(`http://localhost:8000/api/v1/tasks/${taskId}`);
 
         return data;

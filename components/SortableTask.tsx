@@ -10,7 +10,7 @@ const SortableTask = ({ task }: { task: TaskType }) => {
     transform,
     transition,
   } = useSortable({
-    id: task.taskId,     // ✅ MUST match board ids
+    id: task.taskId,
   })
 
   const style = {
@@ -23,9 +23,8 @@ const SortableTask = ({ task }: { task: TaskType }) => {
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
     >
-      <Task {...task} />
+      <Task {...task} dragHandleProps={listeners} />
     </div>
   )
 }

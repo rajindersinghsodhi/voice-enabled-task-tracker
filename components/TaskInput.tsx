@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react"
 import { z } from "zod"
 import { format } from "date-fns"
-
 import {
   Dialog,
   DialogContent,
@@ -11,10 +10,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-
 import { Label } from "./ui/label"
 import { Input } from "./ui/input"
-
 import {
   Select,
   SelectContent,
@@ -22,20 +19,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-
 import { CalendarIcon, Mic, Podcast } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskType } from "./Task"
 import taskService from "@/services/taskService"
+import { useAppDispatch } from "@/store/hooks"
+import { createTask } from "@/store/tasksSlice"
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -43,19 +39,14 @@ const taskSchema = z.object({
   dueDate: z.string(),
 })
 
-type TaskInputProps = {
-  addTask: (task: TaskType) => void
-}
-
-const TaskInput = ({ addTask }: TaskInputProps) => {
+const TaskInput = () => {
+  const dispatch = useAppDispatch()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
-  const [priority, setPriority] =
-    useState<"low" | "medium" | "high">("medium")
+  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium")
   const [date, setDate] = useState<Date | undefined>()
   const [error, setError] = useState<string | null>(null)
   const [isListening, setIsListening] = useState(false)
-
 
   // ✅ VOICE RECOGNITION REF
   const recognitionRef = useRef<any>(null)
@@ -67,9 +58,7 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
       return
     }
 
-    const SpeechRecognition =
-      (window as any).webkitSpeechRecognition
-
+    const SpeechRecognition = (window as any).webkitSpeechRecognition
     const recognition = new SpeechRecognition()
 
     recognition.lang = "en-US"
@@ -77,46 +66,40 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
     recognition.interimResults = false
 
     recognition.onstart = () => {
-    setIsListening(true)
-  }
+      setIsListening(true)
+    }
 
     recognition.onresult = async (event: any) => {
       const sentence = event.results[0][0].transcript
 
-        console.log(sentence)
-      const { taskPayload } = await taskService.parseSpeechToTask({ speechText: sentence });
+      console.log(sentence)
+      const { taskPayload } = await taskService.parseSpeechToTask({ speechText: sentence })
 
       console.log(taskPayload)
 
       if (taskPayload?.title) {
-    setTitle(taskPayload.title)
-  }
+        setTitle(taskPayload.title)
+      }
 
-  if (taskPayload?.priority) {
-    setPriority(taskPayload.priority)
-  }
+      if (taskPayload?.priority) {
+        setPriority(taskPayload.priority)
+      }
 
-  if (taskPayload?.dueDate) {
-    setDate(new Date(taskPayload.dueDate))
-  }
+      if (taskPayload?.dueDate) {
+        setDate(new Date(taskPayload.dueDate))
+      }
     }
 
     recognition.onerror = (err: any) => {
       console.error("Voice error:", err)
+      setIsListening(false)
     }
 
-    recognition.onerror = (err: any) => {
-    console.error("Voice error:", err)
-    setIsListening(false) // ✅ ensure cleanup
-  }
-
-  // ✅ MIC STOPPED
-  recognition.onend = () => {
-    setIsListening(false)
-  }
+    recognition.onend = () => {
+      setIsListening(false)
+    }
 
     recognition.start()
-
     recognitionRef.current = recognition
   }
 
@@ -138,12 +121,11 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
 
     const task: TaskType = { ...result.data, status: "todo" }
 
-    addTask(task)
+    dispatch(createTask(task))
 
     setTitle("")
     setPriority("medium")
     setDate(undefined)
-
     setOpen(false)
   }
 
@@ -153,9 +135,7 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
 
   return (
     <div className="task-input-flex">
-
       <Dialog open={open} onOpenChange={setOpen}>
-
         <DialogTrigger asChild>
           <Button>Add Task</Button>
         </DialogTrigger>
@@ -180,14 +160,11 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
                 <Podcast size={16} className="animate-bounce" />
               )}
             </Button>
-
           </div>
           <div className="grid gap-4">
-
             {/* TITLE */}
             <div className="grid gap-2">
               <Label>Title</Label>
-
               <div className="flex gap-2 items-center">
                 <Input
                   value={title}
@@ -248,7 +225,6 @@ const TaskInput = ({ addTask }: TaskInputProps) => {
             {error && <p className="text-sm text-red-500">{error}</p>}
 
             <Button onClick={submitTask}>Create Task</Button>
-
           </div>
         </DialogContent>
       </Dialog>
