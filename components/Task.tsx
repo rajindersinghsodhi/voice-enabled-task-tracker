@@ -6,11 +6,21 @@ import { useAppDispatch } from "@/store/hooks"
 import { deleteTask } from "@/store/tasksSlice"
 import { useState } from "react"
 import TaskInput from "./TaskInput"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export type TaskType = {
   taskId: string,
   title: string
-  priority: "low" | "medium" | "high"
+  priority: "low" | "high"
   dueDate: string // YYYY-MM-DD
   status: "todo" | "done"
 }
@@ -20,15 +30,15 @@ type TaskProps = TaskType & {
 }
 
 const priorityStyles = {
-  low: "bg-green-100 text-green-700",
-  medium: "bg-yellow-100 text-yellow-800",
-  high: "bg-red-100 text-red-700"
+  low: "bg-white font-medium border shadow-[0_0_8px_rgba(0,0,0,0.3)] text-green-700",
+  high: "bg-white font-medium border shadow-[0_0_8px_rgba(0,0,0,0.3)] text-red-700"
 }
 
 const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: TaskProps) => {
   const dispatch = useAppDispatch()
   const isDone = status === "done"
   const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -38,10 +48,13 @@ const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: Tas
       console.error("TaskId is undefined!")
       return
     }
-    if (window.confirm("Are you sure you want to delete this task?")) {
-      console.log("Dispatching delete for:", taskId)
-      dispatch(deleteTask(taskId))
-    }
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = () => {
+    console.log("Dispatching delete for:", taskId)
+    dispatch(deleteTask(taskId))
+    setDeleteDialogOpen(false)
   }
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -72,7 +85,10 @@ const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: Tas
                 {format(new Date(dueDate), "dd MMM yyyy")}
               </span>
             </div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium">Priority:</p>
               <Badge className={priorityStyles[priority]}>{priority.toUpperCase()}</Badge>
+            </div>
           </div>
 
           <div className={`flex flex-col self-stretch ${isDone ? 'justify-between items-end' : 'items-center justify-end gap-2'}`}>
@@ -106,6 +122,22 @@ const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: Tas
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this task?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Yes</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
