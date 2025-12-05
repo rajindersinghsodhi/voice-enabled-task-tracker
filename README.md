@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Voice Enabled Task Tracker - Frontend
 
-## Getting Started
+A voice enabled task tracker application built with Next.js, React, and shadcn/ui components. This frontend connects to a Node.js backend API to provide a complete task management solution.
 
-First, run the development server:
+## Features
+
+- Create, read, update, and delete tasks
+- voice enabled inputs, user can ask and ai will generate the task information for it
+- user can move tasks between the boards to change status from ToDo to Done
+- Search tasks by title
+- Filter tasks by status, priority, and due date
+- Modern UI with Tailwind CSS and shadcn/ui
+- Responsive design
+
+## Prerequisites
+
+Before running this project, make sure you have the following installed:
+
+- **Node.js** (version 18 or higher) - [Download here](https://nodejs.org/)
+- **npm** (comes with Node.js) or **yarn**
+- **Backend API** running (see backend repository README for setup instructions)
+
+## Environment Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <your-repository-url>
+   cd <frontend-folder-name>
+   ```
+
+2. **I have made it simple for you by not keeping url in .env** 
+
+## Installation
+
+Install all project dependencies:
+
+```bash
+npm install
+```
+
+## Running the Project
+
+### Development Mode
+
+Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will be available at **http://localhost:3000**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+To create an optimized production build:
 
-## Learn More
+```bash
+npm run build
+npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Important Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Backend Dependency**: This frontend requires the backend API to be running. Make sure your backend is set up and running before using this application.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Port Conflicts**: If port 3000 is already in use, Next.js will automatically suggest the next available port, but make sure to change the port in backend to prevent **CORS** error.
 
-## Deploy on Vercel
+## Technologies Used
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Next.js**
+- **React**
+- **TypeScript** - for Type safety
+- **Tailwind CSS** - for styling
+- **shadcn/ui** - to integrate prebuilt UI components
+- **Lucide React** - Icons
