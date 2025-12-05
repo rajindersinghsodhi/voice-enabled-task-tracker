@@ -156,7 +156,7 @@ export default function Board() {
   return (
     <div className="board flex flex-col h-screen">
       {/* Filter Bar */}
-      <div className="px-4 pt-4 pb-2">
+      <div className="px-2 sm:px-4 pt-4 pb-2">
         <FilterBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -176,7 +176,7 @@ export default function Board() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex justify-start gap-3 px-4 py-4 flex-1 w-fit overflow-x-auto">
+        <div className="flex flex-col md:flex-row justify-start gap-3 px-2 sm:px-4 py-4 flex-1 overflow-x-auto overflow-y-auto">
           <TodoList tasks={filteredTasks.filteredTodos} />
           <DoneList tasks={filteredTasks.filteredDone} />
         </div>
@@ -186,7 +186,7 @@ export default function Board() {
         </DragOverlay>
       </DndContext>
 
-      <div className="py-4 flex justify-center">
+      <div className="py-4 px-2 sm:px-4 flex justify-center">
         <TaskInput />
       </div>
     </div>
