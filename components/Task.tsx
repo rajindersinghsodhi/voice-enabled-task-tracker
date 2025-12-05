@@ -25,11 +25,6 @@ const priorityStyles = {
   high: "bg-red-100 text-red-700"
 }
 
-const statusStyles = {
-  todo: "",
-  done: "bg-green-50 border border-green-200"
-}
-
 const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: TaskProps) => {
   const dispatch = useAppDispatch()
   const isDone = status === "done"
@@ -57,27 +52,36 @@ const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: Tas
 
   return (
     <>
-      <Card className={`w-full ${isDone ? "opacity-80" : ""} ${statusStyles[status]}`}>
-        <CardContent className="flex w-full justify-between items-center gap-2 text-muted-foreground p-3">
+      <Card className={`min-w-80 max-w-full`}>
+        <CardContent className="flex w-full justify-between items-stretch gap-2 text-muted-foreground p-3">
           {/* Drag Handle */}
           <div 
             {...dragHandleProps}
-            className="cursor-grab active:cursor-grabbing hover:text-gray-700"
+            className="cursor-grab active:cursor-grabbing hover:text-gray-700 flex items-center"
           >
             <GripVertical size={20} />
           </div>
 
-          <div className="task flex flex-col gap-2 items-start flex-1">
-            <p>{title}</p>
-            <div className="flex items-center gap-2">
+          <div className="task flex flex-col gap-2 items-start justify-center flex-1">
+            <p className="text-base">
+              {title}
+            </p>
+            <div className="flex items-center gap-2 text-sm">
               <CalendarIcon size={16} />
-              <span>{format(new Date(dueDate), "dd MMM yyyy")}</span>
+              <span className={isDone ? "text-gray-400" : ""}>
+                {format(new Date(dueDate), "dd MMM yyyy")}
+              </span>
             </div>
+              <Badge className={priorityStyles[priority]}>{priority.toUpperCase()}</Badge>
           </div>
 
-          <div className="flex flex-col items-center gap-2">
-            <Badge className={priorityStyles[priority]}>{priority.toUpperCase()}</Badge>
-            {isDone && <CircleCheckBig height={16} strokeWidth={3} />}
+          <div className={`flex flex-col self-stretch ${isDone ? 'justify-between items-end' : 'items-center justify-end gap-2'}`}>
+            {isDone && (
+              <div className="flex items-center gap-1 text-green-600">
+                <CircleCheckBig height={18} strokeWidth={2.5} />
+                <span className="text-xs font-medium">Done</span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <button 
                 onClick={handleEdit}

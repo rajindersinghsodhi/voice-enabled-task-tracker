@@ -14,7 +14,12 @@ export default function TodoList() {
     <div ref={setNodeRef} className="flex-1">
       <div className="p-4 rounded-lg h-full border shadow-md flex flex-col">
         <p className="font-bold mb-4 text-lg">Todo</p>
-        <div className="flex-1 flex flex-col gap-3 overflow-y-auto hide-scrollbar">
+        { tasks.length === 0 ? (
+          <div className="flex justify-center items-center h-full min-w-60">
+            <p className="text-sm text-gray-500">No tasks to do</p>
+          </div>
+        ): (
+          <div className="flex-1 flex flex-col gap-3 overflow-y-auto hide-scrollbar">
           <SortableContext
             items={tasks.map(t => t.taskId)}
             strategy={verticalListSortingStrategy}
@@ -27,6 +32,7 @@ export default function TodoList() {
             ))}
           </SortableContext>
         </div>
+        )}
       </div>
     </div>
   )
