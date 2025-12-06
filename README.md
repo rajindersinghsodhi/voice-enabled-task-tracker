@@ -16,19 +16,22 @@ A voice enabled task tracker application built with Next.js, React, and shadcn/u
 
 Before running this project, make sure you have the following installed:
 
-- **Node.js** (version 18 or higher) - [Download here](https://nodejs.org/)
-- **npm** (comes with Node.js) or **yarn**
+- **Node.js**
+- **npm**
 - **Backend API** running (see backend repository README for setup instructions)
 
 ## Environment Setup
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repository-url>
-   cd <frontend-folder-name>
+   git clone https://github.com/rajindersinghsodhi/voice-enabled-task-tracker.git
+   cd voice-enabled-task-tracker
    ```
 
-2. **I have made it simple for you by not keeping url in .env** 
+2. **Create a `.env` file** in the root directory and add the following environment variables:
+   ```bash
+    NEXT_PUBLIC_API_URL=VOIC_ENABLED_TASK_TRACKER_BACKEND_URL_HERE
+   ```
 
 ## Installation
 
@@ -49,15 +52,6 @@ npm run dev
 ```
 
 The application will be available at **http://localhost:3000**
-
-### Production Build
-
-To create an optimized production build:
-
-```bash
-npm run build
-npm start
-```
 
 ## Important Notes
 
