@@ -133,7 +133,7 @@ export default function Board() {
   }
 
   useEffect(() => {
-    dispatch(fetchTasks())
+      dispatch(fetchTasks())
   }, [dispatch])
 
   return (

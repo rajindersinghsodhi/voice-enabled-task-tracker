@@ -1,7 +1,9 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import userReducer from './userSlice';
+import chatReducer from './chatSlice';
 import themeReducer from './themeSlice';
-import tasksReducer from './tasksSlice'
+import userConnectionReducer from './userConnections';
+import aiReducer from './aiSlice';
 import storage from 'redux-persist/lib/storage';
 import { persistReducer, persistStore } from 'redux-persist';
 import { createBlacklistFilter } from "redux-persist-transform-filter"
@@ -25,8 +27,10 @@ const persistConfig = {
 // 2. Combine reducers if you plan to add more slices
 const appReducer = combineReducers({
   user: userReducer,
+  chat: chatReducer,
   theme: themeReducer,
-  tasks: tasksReducer,
+  userConnection: userConnectionReducer,
+  aiState: aiReducer,
 });
 
 const rootReducer = (state: any, action: any) => {

@@ -35,6 +35,7 @@ import { createTask, updateTask } from "@/store/tasksSlice"
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  description: z.string(),
   priority: z.enum(["low", "high"]),
   dueDate: z.string(),
 })
@@ -50,6 +51,7 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
   const recognitionRef = useRef<any>(null)
   const [internalOpen, setInternalOpen] = useState(false)
   const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
   const [priority, setPriority] = useState<"low" | "high">("low")
   const [date, setDate] = useState<Date | undefined>()
   const [error, setError] = useState<string | null>(null)
@@ -62,17 +64,19 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
   useEffect(() => {
     if (editTask) {
       setTitle(editTask.title)
+      setDescription(editTask.description)
       setPriority(editTask.priority)
       setDate(new Date(editTask.dueDate))
     } else {
       setTitle("")
+      setDescription("")
       setPriority("low")
       setDate(undefined)
     }
   }, [editTask])
 
   const startVoiceRecognition = () => {
-    if (!("webkitSpeechRecognition" in window)) {
+      if (!("webkitSpeechRecognition" in window)) {
       alert("Voice recognition not supported in this browser")
       return
     }
@@ -94,6 +98,10 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
 
       if (taskPayload?.title) {
         setTitle(taskPayload.title)
+      }
+
+      if (taskPayload?.description) {
+        setDescription(taskPayload.description)
       }
 
       if (taskPayload?.priority) {
@@ -119,8 +127,9 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
   }
 
   const submitTask = () => {
-    const payload = {
+      const payload = {
       title: title.trim(),
+      description: description.trim(),
       priority,
       dueDate: format(date ?? new Date(), "yyyy-MM-dd"),
     }
@@ -135,6 +144,7 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
     setError(null)
 
     if (isEditMode && editTask) {
+      console.log(result.data)
       dispatch(updateTask({ taskId: editTask.taskId, updates: result.data}))
     } else {
       const task: TaskType = { ...result.data, status: "todo" }
@@ -142,6 +152,7 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
     }
 
     setTitle("")
+    setDescription("")
     setPriority("low")
     setDate(undefined)
     setOpen(false)
@@ -182,6 +193,16 @@ const TaskInput = ({ editTask = null, open: controlledOpen, onOpenChange }: Task
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Buy groceries..."
+                />
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>Description</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Fuit, vegetables, wheat, cereals..."
                 />
               </div>
             </div>

@@ -18,11 +18,12 @@ import { useState } from "react"
 import TaskInput from "./TaskInput"
 
 export type TaskType = {
-  taskId: string,
-  title: string
-  priority: "low" | "high"
-  dueDate: string
-  status: "todo" | "done"
+  taskId: string;
+  title: string;
+  description: string;
+  priority: "low" | "high";
+  dueDate: string;
+  status: "todo" | "done";
 }
 
 type TaskProps = TaskType & {
@@ -34,7 +35,7 @@ const priorityStyles = {
   high: "bg-white font-medium border shadow-[0_0_8px_rgba(0,0,0,0.3)] text-red-700"
 }
 
-const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: TaskProps) => {
+const Task = ({ taskId, title, description, priority, dueDate, status, dragHandleProps }: TaskProps) => {
   const dispatch = useAppDispatch();
   const isDone = status === "done";
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -51,8 +52,8 @@ const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: Tas
   }
 
   const confirmDelete = () => {
-    dispatch(deleteTask(taskId))
-    setDeleteDialogOpen(false)
+      dispatch(deleteTask(taskId))
+      setDeleteDialogOpen(false)
   }
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -63,19 +64,20 @@ const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: Tas
 
   return (
     <>
-      <Card className={`min-w-80 max-w-full`}>
+      <Card className={`min-w-80 max-w-full ${status === "done" ? 'bg-green-200' : 'bg-yellow-200'}`}>
         <CardContent className="flex w-full justify-between items-stretch gap-2 text-muted-foreground p-3">
           <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing hover:text-gray-700 flex items-center">
-            <GripVertical size={20} />
+            <GripVertical size={20} className="text-black" />
           </div>
           <div className="task flex flex-col gap-2 items-start justify-center flex-1">
-            <p className="text-base">{title}</p>
+            <p className="text-base text-black">{title}</p>
+            <p className="text-base text-black">{description}</p>
             <div className="flex items-center gap-2 text-sm">
-              <CalendarIcon size={16} />
-              <span className={isDone ? "text-gray-400" : ""}>{format(new Date(dueDate), "dd MMM yyyy")}</span>
+              <CalendarIcon size={16} className="text-black" />
+              <span className={isDone ? "text-black" : ""} style={{ color: "black"}}>{format(new Date(dueDate), "dd MMM yyyy")}</span>
             </div>
             <div className="flex items-center gap-2">
-              <p className="text-sm font-medium">Priority:</p>
+              <p className="text-sm font-medium text-black">Priority:</p>
               <Badge className={priorityStyles[priority]}>{priority.toUpperCase()}</Badge>
             </div>
           </div>
@@ -83,21 +85,21 @@ const Task = ({ taskId, title, priority, dueDate, status, dragHandleProps }: Tas
             {isDone && (
               <div className="flex items-center gap-1 text-green-600">
                 <CircleCheckBig height={18} strokeWidth={2.5} />
-                <span className="text-xs font-medium">Done</span>
+                <span className="text-xs font-medium text-black">Done</span>
               </div>
             )}
             <div className="flex items-center gap-2">
               <button  onClick={handleEdit} className="hover:text-blue-600 transition-colors">
-                <Edit2 size={16} />
+                <Edit2 size={16} className="text-black" />
               </button>
               <button  onClick={handleDelete} className="hover:text-red-600 transition-colors">
-                <Trash2 size={16} />
+                <Trash2 size={16} className="text-black" />
               </button>
             </div>
           </div>
         </CardContent>
       </Card>
-      <TaskInput  editTask={{ taskId, title, priority, dueDate, status }} open={editDialogOpen} onOpenChange={setEditDialogOpen}/>
+      <TaskInput  editTask={{ taskId, title, description, priority, dueDate, status }} open={editDialogOpen} onOpenChange={setEditDialogOpen}/>
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
